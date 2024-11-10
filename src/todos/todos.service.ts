@@ -1,33 +1,61 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TodoEntity } from 'src/db/entities/todo.entity';
+import { Repository } from 'typeorm';
 import { CreateTodoDto } from './dto/create-todo.dto';
-import { TodoDto } from './dto/todo.dto';
+import { TodoDto, todoSchema } from './dto/todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
 
 @Injectable()
 export class TodosService {
+  constructor(
+    @InjectRepository(TodoEntity)
+    private todoRepository: Repository<TodoEntity>,
+  ) {}
   todos: TodoDto[] = [];
 
-  createTodo(todo: CreateTodoDto): TodoDto {
-    const newTodo = { id: crypto.randomUUID(), ...todo };
-    this.todos.push(newTodo);
+  async createTodo(todo: CreateTodoDto): Promise<TodoDto> {
+    const createdTodo = await this.todoRepository.save(todo);
 
-    return newTodo;
+    return todoSchema.parse(createdTodo);
   }
 
-  findAll(): TodoDto[] {
-    return this.todos;
+  async findAll(): Promise<TodoDto[]> {
+    const result = await this.todoRepository.find();
+    return result as TodoDto[];
   }
 
-  findById(id: string): TodoDto {
-    const todo = this.todos.find((todo) => todo.id === id);
+  async findById(id: number): Promise<TodoDto> {
+    const todo = await this.todoRepository.findOne({
+      where: { id: id },
+    });
 
-    if (!todo) {
+    if (todo) {
+      return todoSchema.parse(todo);
+    }
+
+    throw new NotFoundException();
+  }
+
+  async patchTodo(id: number, todo: UpdateTodoDto): Promise<TodoDto> {
+    const result = await this.todoRepository.update(id, todo);
+
+    if (result.affected === 0) {
       throw new NotFoundException();
     }
 
-    return todo;
+    const updatedTodo = await this.todoRepository.findOne({
+      where: { id: id },
+    });
+
+    return todoSchema.parse(updatedTodo);
   }
 
-  deleteTodo(id: string): void {
-    this.todos = this.todos.filter((todo) => todo.id !== id);
+  async deleteTodo(id: number): Promise<void> {
+    const result = await this.todoRepository.delete({ id });
+
+    if (result.affected === 0) {
+      throw new NotFoundException();
+    }
   }
 }
