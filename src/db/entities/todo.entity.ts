@@ -1,13 +1,23 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { TodoList } from './todo-list.entity';
 
-@Entity({ name: 'todo' })
-export class TodoEntity {
+@Entity()
+export class Todo {
   @PrimaryGeneratedColumn()
-  id?: number;
+  id: number;
 
   @Column()
   title: string;
 
   @Column({ nullable: true })
   description?: string;
+
+  @Column()
+  dueDate: Date;
+
+  @Column()
+  isCompleted: boolean;
+
+  @ManyToOne(() => TodoList, (todoList) => todoList.todos)
+  todoList: TodoList;
 }
