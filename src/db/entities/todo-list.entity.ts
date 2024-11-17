@@ -13,20 +13,20 @@ import { User } from './user.entity';
 @Entity('todoList')
 export class TodoList {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  dueDate: Date;
+  dueDate!: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ManyToOne(() => User, (user) => user.todoLists)
-  user: User;
+  user!: User;
 
   @OneToMany(() => Todo, (todo) => todo.todoList)
-  todos: Todo[];
+  todos!: Todo[];
 }

@@ -4,20 +4,20 @@ import { TodoList } from './todo-list.entity';
 @Entity()
 export class Todo {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  title: string;
+  title!: string;
 
   @Column({ nullable: true })
   description?: string;
 
   @Column()
-  dueDate: Date;
+  dueDate!: Date;
 
   @Column()
-  isCompleted: boolean;
+  isCompleted!: boolean;
 
   @ManyToOne(() => TodoList, (todoList) => todoList.todos)
-  todoList: TodoList;
+  todoList!: TodoList;
 }

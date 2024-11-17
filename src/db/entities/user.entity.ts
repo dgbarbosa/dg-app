@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,17 +13,23 @@ import { TodoList } from './todo-list.entity';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
+
+  @Column({ unique: true })
+  email!: string;
+
+  @Column({})
+  password!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => TodoList, (todoList) => todoList.user)
-  todoLists: TodoList[];
+  todoLists!: TodoList[];
 }
