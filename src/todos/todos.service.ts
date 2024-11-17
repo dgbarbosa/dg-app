@@ -1,61 +1,98 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TodoEntity } from 'src/db/entities/todo.entity';
+import { Todo } from 'src/db/entities/todo.entity';
 import { Repository } from 'typeorm';
 import { CreateTodoDto } from './dto/create-todo.dto';
-import { TodoDto, todoSchema } from './dto/todo.dto';
+import { TodoDto, todoDtoSchema } from './dto/todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import { TodoList } from '@entities/todo-list.entity';
+import { GetTodoDto } from './dto/get-todo.dto';
+import { TodoListsService } from 'src/todo-lists/todo-lists.service';
 
 @Injectable()
 export class TodosService {
   constructor(
-    @InjectRepository(TodoEntity)
-    private todoRepository: Repository<TodoEntity>,
+    @InjectRepository(Todo)
+    private repository: Repository<Todo>,
+    private todoListsService: TodoListsService,
   ) {}
   todos: TodoDto[] = [];
 
-  async createTodo(todo: CreateTodoDto): Promise<TodoDto> {
-    const createdTodo = await this.todoRepository.save(todo);
+  async create(todo: CreateTodoDto, userId: number): Promise<GetTodoDto> {
+    const todoListId = todo.todoList.id;
+    await this.validateTodoList(todoListId, userId);
 
-    return todoSchema.parse(createdTodo);
+    const { todoList, ...createdTodo } = await this.repository.save(todo);
+
+    return createdTodo;
   }
 
-  async findAll(): Promise<TodoDto[]> {
-    const result = await this.todoRepository.find();
-    return result as TodoDto[];
-  }
-
-  async findById(id: number): Promise<TodoDto> {
-    const todo = await this.todoRepository.findOne({
-      where: { id: id },
+  async findOne(id: number, userId: number): Promise<TodoDto> {
+    const todo = await this.repository.findOne({
+      where: { id },
+      relations: ['todoList'],
     });
 
-    if (todo) {
-      return todoSchema.parse(todo);
+    if (!todo) {
+      throw new NotFoundException();
+    }
+
+    await this.validateTodoList(todo.todoList.id, userId);
+
+    const { todoList, ...foundTodo } = todo;
+    return {
+      ...foundTodo,
+      todoList: {
+        id: todoList.id,
+      },
+    };
+  }
+
+  async patchTodo(
+    id: number,
+    updateTodo: UpdateTodoDto,
+    userId: number,
+  ): Promise<TodoDto> {
+    await this.validateTodoList(updateTodo.todoList.id, userId);
+
+    await this.repository.update(id, updateTodo);
+
+    const updatedTodo = await this.repository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (updatedTodo) {
+      return updatedTodo;
     }
 
     throw new NotFoundException();
   }
 
-  async patchTodo(id: number, todo: UpdateTodoDto): Promise<TodoDto> {
-    const result = await this.todoRepository.update(id, todo);
+  async deleteTodo(id: number, userId: number): Promise<void> {
+    const todoList = await this.todoListsService.findById(id);
+
+    if (todoList.id !== userId) {
+      throw new NotFoundException();
+    }
+    const result = await this.repository.delete({ id });
 
     if (result.affected === 0) {
       throw new NotFoundException();
     }
-
-    const updatedTodo = await this.todoRepository.findOne({
-      where: { id: id },
-    });
-
-    return todoSchema.parse(updatedTodo);
   }
 
-  async deleteTodo(id: number): Promise<void> {
-    const result = await this.todoRepository.delete({ id });
+  async validateTodoList(todoListId: number, userId: number): Promise<void> {
+    const foundTodoList = await this.todoListsService.findById(todoListId);
 
-    if (result.affected === 0) {
-      throw new NotFoundException();
+    if (foundTodoList.user.id !== userId) {
+      throw new UnauthorizedException();
     }
   }
 }
