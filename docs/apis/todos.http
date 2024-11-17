@@ -1,0 +1,30 @@
+### GET TODO BY ID
+GET http://localhost:3000/todos/1
+
+### CREATE TODO
+POST http://localhost:3000/todos
+Content-Type: application/json
+x-user-id: 22
+
+{
+    "title": "TODO 1",
+    "isCompleted": false,
+    "todoList": {
+        "id": 4
+    },
+    "description": "DESCRIPTION TODO 1",
+    "dueDate": "2024-11-17T04:02:40.603Z"
+}
+
+### PATCH TODO
+
+PATCH http://localhost:3000/todos/1
+Content-Type: application/json
+x-user-id: 22
+
+{
+    "isCompleted": false,
+    "todoList": {
+        "id": 4
+    }
+}

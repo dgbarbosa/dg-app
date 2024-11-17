@@ -1,0 +1,13 @@
+### GET ALL TODO LISTS
+GET http://localhost:3000/todo-lists
+x-user-id: 22
+
+### CREATE TODO LIST
+POST http://localhost:3000/todo-lists
+Content-Type: application/json
+x-user-id: 22
+
+{
+    "dueDate": "2024-11-17T02:56:16.437Z",
+    "userId": 22
+}
