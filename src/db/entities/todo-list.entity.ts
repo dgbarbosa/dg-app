@@ -24,7 +24,7 @@ export class TodoList {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (user) => user.todoLists)
+  @ManyToOne(() => User, (user) => user.todoLists, { nullable: false })
   user!: User;
 
   @OneToMany(() => Todo, (todo) => todo.todoList)

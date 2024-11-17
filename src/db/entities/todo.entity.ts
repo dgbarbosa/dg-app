@@ -12,12 +12,12 @@ export class Todo {
   @Column({ nullable: true })
   description?: string;
 
-  @Column()
+  @Column({ nullable: true })
   dueDate!: Date;
 
-  @Column()
+  @Column({ default: false })
   isCompleted!: boolean;
 
-  @ManyToOne(() => TodoList, (todoList) => todoList.todos)
+  @ManyToOne(() => TodoList, (todoList) => todoList.todos, { nullable: false })
   todoList!: TodoList;
 }
