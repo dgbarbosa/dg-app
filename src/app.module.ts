@@ -5,6 +5,7 @@ import { DbModule } from './db/db.module';
 import { TodoListsModule } from './todo-lists/todo-lists.module';
 import { UsersModule } from './users/users.module';
 import { TodosModule } from './todos/todos.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TodosModule } from './todos/todos.module';
     TodoListsModule,
     TodosModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [AppService],

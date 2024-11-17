@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -55,6 +56,20 @@ export class UsersService {
         id: userId,
       },
       select: ['id', 'name', 'email', 'createdAt', 'updatedAt'],
+    });
+
+    if (user) {
+      return user;
+    }
+
+    throw new NotFoundException();
+  }
+
+  async findByEmail(email: string): Promise<UserDto> {
+    const user = await this.repository.findOne({
+      where: {
+        email,
+      },
     });
 
     if (user) {
