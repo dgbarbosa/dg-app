@@ -13,13 +13,16 @@
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "strictFunctionTypes": true,
     "paths": {
       "@common/*": ["src/common/*"],
-      "@entities": ["src/db/entities"]
+      "@entities/*": ["src/db/entities/*"],
     }
   }
 }
