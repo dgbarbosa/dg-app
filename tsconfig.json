@@ -21,6 +21,8 @@
     "noImplicitAny": true,
     "strictFunctionTypes": true,
     "paths": {
+      "@decorators": ["src/common/decorators"],
+      "@constants": ["src/common/constants"],
       "@common/*": ["src/common/*"],
       "@entities/*": ["src/db/entities/*"],
     }

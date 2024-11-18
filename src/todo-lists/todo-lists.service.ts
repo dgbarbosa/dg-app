@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { CreateTodoListDto } from './dto/create-todo-list.dto';
 import { TodoListDto } from './dto/todo-list.dto';
 import { GetTodoListDto } from './dto/get-todo-list.dto';
+import { UpdateTodoListDto } from './dto/update-todo-list.dto';
 
 @Injectable()
 export class TodoListsService {
@@ -37,13 +38,26 @@ export class TodoListsService {
     });
   }
 
-  // async deleteTodoList(id: number): Promise<void> {
-  //   const deleteResult = await this.repository.delete(id);
+  async delete(id: number, userId: number): Promise<void> {
+    const todoList = await this.repository.findOne({
+      where: {
+        id,
+        user: {
+          id: userId,
+        },
+      },
+    });
 
-  //   if (deleteResult.affected === 0) {
-  //     throw new NotFoundException();
-  //   }
-  // }
+    if (!todoList) {
+      throw new NotFoundException();
+    }
+
+    const deleteResult = await this.repository.delete(id);
+
+    if (deleteResult.affected === 0) {
+      throw new NotFoundException();
+    }
+  }
 
   async findById(id: number): Promise<TodoListDto> {
     const todoList = await this.repository.findOne({
@@ -59,27 +73,42 @@ export class TodoListsService {
     throw new NotFoundException();
   }
 
-  // async patchTodoList(
-  //   id: number,
-  //   todoList: TodoListDto,
-  //   userId: number,
-  // ): Promise<TodoListDto> {
-  //   const todoListToUpdate = await this.repository.findOne({
-  //     where: {
-  //       id,
-  //       user: {
-  //         id: userId,
-  //       },
-  //     },
-  //   });
+  async findOne(id: number): Promise<TodoListDto> {
+    const todoList = await this.repository.findOne({
+      where: {
+        id,
+      },
+      relations: ['user'],
+    });
 
-  //   if (todoListToUpdate) {
-  //     return await this.repository.save({
-  //       ...todoListToUpdate,
-  //       ...todoList,
-  //     });
-  //   }
+    if (todoList) {
+      return todoList;
+    }
 
-  //   throw new NotFoundException();
-  // }
+    throw new NotFoundException();
+  }
+
+  async patch(
+    id: number,
+    todoList: UpdateTodoListDto,
+    userId: number,
+  ): Promise<TodoListDto> {
+    const todoListToUpdate = await this.repository.findOne({
+      where: {
+        id,
+        user: {
+          id: userId,
+        },
+      },
+    });
+
+    if (todoListToUpdate) {
+      return await this.repository.save({
+        ...todoListToUpdate,
+        ...todoList,
+      });
+    }
+
+    throw new NotFoundException();
+  }
 }

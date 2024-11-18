@@ -24,7 +24,11 @@ export class TodosService {
   todos: TodoDto[] = [];
 
   async create(todo: CreateTodoDto, userId: number): Promise<GetTodoDto> {
+    console.log('todo', todo);
+    console.log('userId', userId);
+
     const todoListId = todo.todoList.id;
+    console.log('todoListId', todoListId);
     await this.validateTodoList(todoListId, userId);
 
     const { todoList, ...createdTodo } = await this.repository.save(todo);
@@ -75,12 +79,20 @@ export class TodosService {
     throw new NotFoundException();
   }
 
-  async deleteTodo(id: number, userId: number): Promise<void> {
-    const todoList = await this.todoListsService.findById(id);
+  async delete(id: number, userId: number): Promise<void> {
+    const todo = await this.repository.findOne({
+      where: { id },
+      relations: ['todoList'],
+    });
 
-    if (todoList.id !== userId) {
+    console.log('todo', todo);
+
+    if (!todo) {
       throw new NotFoundException();
     }
+
+    await this.validateTodoList(todo.todoList.id, userId);
+
     const result = await this.repository.delete({ id });
 
     if (result.affected === 0) {
@@ -88,9 +100,11 @@ export class TodosService {
     }
   }
 
-  async validateTodoList(todoListId: number, userId: number): Promise<void> {
-    const foundTodoList = await this.todoListsService.findById(todoListId);
-
+  private async validateTodoList(
+    todoListId: number,
+    userId: number,
+  ): Promise<void> {
+    const foundTodoList = await this.todoListsService.findOne(todoListId);
     if (foundTodoList.user.id !== userId) {
       throw new UnauthorizedException();
     }

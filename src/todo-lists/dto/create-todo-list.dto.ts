@@ -8,6 +8,7 @@ export const createTodoListDtoSchema = todoListDtoSchema
     updatedAt: true,
     dueDate: true,
     todos: true,
+    user: true,
   })
   .merge(z.object({ dueDate: z.string() }));
 

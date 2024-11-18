@@ -1,10 +1,24 @@
 import { ZodValidationPipe } from '@common/pipes';
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { User } from '@decorators';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import {
   CreateTodoListDto,
   createTodoListDtoSchema,
 } from './dto/create-todo-list.dto';
 import { GetTodoListDto } from './dto/get-todo-list.dto';
+import {
+  UpdateTodoListDto,
+  updateTodoListDtoSchema,
+} from './dto/update-todo-list.dto';
 import { TodoListsService } from './todo-lists.service';
 
 @Controller('todo-lists')
@@ -12,20 +26,34 @@ export class TodoListsController {
   constructor(private todoListService: TodoListsService) {}
 
   @Get()
-  async findAll(
-    @Headers('x-user-id') userId: string,
-  ): Promise<GetTodoListDto[]> {
-    console.log('userId', userId);
-    return await this.todoListService.findAll(+userId);
+  async findAll(@User() user: User): Promise<GetTodoListDto[]> {
+    return await this.todoListService.findAll(user.id);
   }
 
   @Post()
   async create(
+    @User() user: User,
     @Body(new ZodValidationPipe(createTodoListDtoSchema))
     todoList: CreateTodoListDto,
-    @Headers('x-user-id')
-    userId: string,
   ): Promise<GetTodoListDto> {
-    return await this.todoListService.create(todoList, +userId);
+    return await this.todoListService.create(todoList, user.id);
+  }
+
+  @Patch(':id')
+  async patch(
+    @User() user: User,
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body(new ZodValidationPipe(updateTodoListDtoSchema))
+    todoList: UpdateTodoListDto,
+  ): Promise<GetTodoListDto> {
+    return await this.todoListService.patch(id, todoList, user.id);
+  }
+
+  @Delete(':id')
+  async delete(
+    @User() user: User,
+    @Param('id', new ParseIntPipe()) id: number,
+  ): Promise<void> {
+    await this.todoListService.delete(id, user.id);
   }
 }
