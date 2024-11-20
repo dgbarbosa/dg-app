@@ -15,7 +15,7 @@ export class TodoList {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ nullable: false, default: () => 'CURRENT_DATE' })
   dueDate!: Date;
 
   @CreateDateColumn()

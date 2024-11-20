@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { TodoList } from './todo-list.entity';
+import { Todo } from './todo.entity';
 
 @Entity()
 export class User {
@@ -30,4 +31,7 @@ export class User {
 
   @OneToMany(() => TodoList, (todoList) => todoList.user)
   todoLists!: TodoList[];
+
+  @OneToMany(() => Todo, (todo) => todo.user)
+  todos!: Todo[];
 }
