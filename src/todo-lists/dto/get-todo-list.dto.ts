@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { todoListDtoSchema } from './todo-list.dto';
+import { todoListSchema } from './todo-list.dto';
 
-export const getTodoListDto = todoListDtoSchema.omit({ user: true });
+export const getTodoListSchema = todoListSchema;
 
-export type GetTodoListDto = z.infer<typeof getTodoListDto>;
+export type GetTodoListDto = z.infer<typeof getTodoListSchema>;

@@ -1,13 +1,14 @@
 import { z } from 'zod';
-import { todoDtoSchema } from './todo.dto';
-import { todoListDtoSchema } from 'src/todo-lists/dto/todo-list.dto';
+import { todoSchema } from './todo.dto';
+import { todoListSchema } from 'src/todo-lists/dto/todo-list.dto';
 
-export const createTodoSchema = todoDtoSchema
-  .omit({ id: true, dueDate: true })
+export const createTodoSchema = todoSchema
+  .omit({
+    id: true,
+  })
   .merge(
     z.object({
-      todoList: todoListDtoSchema.pick({ id: true }),
-      dueDate: z.string().optional(),
+      todoList: todoListSchema.pick({ id: true }).optional(),
     }),
   );
 

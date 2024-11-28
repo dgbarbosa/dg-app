@@ -1,112 +1,113 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { TodoEntity } from '@entities/todo.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Todo } from 'src/db/entities/todo.entity';
-import { Repository } from 'typeorm';
-import { CreateTodoDto } from './dto/create-todo.dto';
-import { TodoDto, todoDtoSchema } from './dto/todo.dto';
-import { UpdateTodoDto } from './dto/update-todo.dto';
-import { TodoList } from '@entities/todo-list.entity';
-import { GetTodoDto } from './dto/get-todo.dto';
 import { TodoListsService } from 'src/todo-lists/todo-lists.service';
+import {
+  FindOneOptions,
+  FindOptionsWhere,
+  Repository,
+  SaveOptions,
+} from 'typeorm';
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { TodoDto, todoSchema } from './dto/todo.dto';
+import { UpdateTodo } from './dto/update-todo.dto';
 
 @Injectable()
 export class TodosService {
   constructor(
-    @InjectRepository(Todo)
-    private repository: Repository<Todo>,
+    @InjectRepository(TodoEntity)
+    private repository: Repository<TodoEntity>,
     private todoListsService: TodoListsService,
   ) {}
-  todos: TodoDto[] = [];
 
-  async create(todo: CreateTodoDto, userId: number): Promise<GetTodoDto> {
-    console.log('todo', todo);
-    console.log('userId', userId);
+  async create(
+    todo: CreateTodoDto,
+    userId: number,
+    options?: SaveOptions,
+  ): Promise<TodoDto> {
+    if (todo.todoList?.id) {
+      const todoList = await this.todoListsService.findOne(
+        todo.todoList.id,
+        userId,
+        {
+          loadRelationIds: true,
+        },
+      );
 
-    const todoListId = todo.todoList.id;
-    console.log('todoListId', todoListId);
-    await this.validateTodoList(todoListId, userId);
+      if (!todoList) {
+        throw new NotFoundException(
+          `TodoList ${todo.todoList.id} does not belong to user: ${userId}`,
+        );
+      }
+    }
 
-    const { todoList, ...createdTodo } = await this.repository.save(todo);
+    const createdTodo = await this.repository.save(todo, options);
 
-    return createdTodo;
+    return todoSchema.parse(createdTodo);
   }
 
-  async findOne(id: number, userId: number): Promise<TodoDto> {
+  async findOne(
+    id: number,
+    userId: number,
+    options?: FindOneOptions<TodoDto>,
+  ): Promise<TodoDto> {
     const todo = await this.repository.findOne({
-      where: { id },
-      relations: ['todoList'],
+      ...options,
+      where: {
+        ...(options?.where || {}),
+        id,
+        user: {
+          id: userId,
+        },
+      },
     });
 
     if (!todo) {
-      throw new NotFoundException();
+      throw new NotFoundException('TodoDto not found');
     }
 
-    await this.validateTodoList(todo.todoList.id, userId);
-
-    const { todoList, ...foundTodo } = todo;
-    return {
-      ...foundTodo,
-      todoList: {
-        id: todoList.id,
-      },
-    };
+    return todoSchema.parse(todo);
   }
 
   async patchTodo(
     id: number,
-    updateTodo: UpdateTodoDto,
+    updateTodo: UpdateTodo,
     userId: number,
+    options: FindOptionsWhere<TodoDto> = {},
   ): Promise<TodoDto> {
-    await this.validateTodoList(updateTodo.todoList.id, userId);
-
-    await this.repository.update(id, updateTodo);
-
-    const updatedTodo = await this.repository.findOne({
-      where: {
+    await this.repository.update(
+      {
+        ...options,
         id,
+        user: {
+          id: userId,
+        },
       },
-    });
+      updateTodo,
+    );
 
-    if (updatedTodo) {
-      return updatedTodo;
+    const todo = await this.findOne(id, userId);
+
+    if (todo) {
+      return todoSchema.parse(todo);
     }
 
     throw new NotFoundException();
   }
 
   async delete(id: number, userId: number): Promise<void> {
-    const todo = await this.repository.findOne({
-      where: { id },
-      relations: ['todoList'],
+    const todo = await this.findOne(id, userId, {
+      loadRelationIds: true,
     });
-
-    console.log('todo', todo);
 
     if (!todo) {
       throw new NotFoundException();
     }
 
-    await this.validateTodoList(todo.todoList.id, userId);
-
-    const result = await this.repository.delete({ id });
+    const result = await this.repository.delete({ id, user: { id: userId } });
 
     if (result.affected === 0) {
       throw new NotFoundException();
-    }
-  }
-
-  private async validateTodoList(
-    todoListId: number,
-    userId: number,
-  ): Promise<void> {
-    const foundTodoList = await this.todoListsService.findOne(todoListId);
-    if (foundTodoList.user.id !== userId) {
-      throw new UnauthorizedException();
     }
   }
 }

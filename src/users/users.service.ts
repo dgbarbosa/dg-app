@@ -1,4 +1,4 @@
-import { User } from '@entities/user.entity';
+import { UserEntity } from '@entities/user.entity';
 import {
   BadRequestException,
   Injectable,
@@ -6,42 +6,37 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { GetUserDto } from './dto/get-user.dto';
+import { GetUserDto, getUserSchema } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private repository: Repository<User>,
+    @InjectRepository(UserEntity)
+    private repository: Repository<UserEntity>,
   ) {}
-  async create({
-    createUserDto,
-  }: {
-    createUserDto: CreateUserDto;
-  }): Promise<GetUserDto> {
-    const user = await this.repository.findOne({
+  async create(createUser: CreateUserDto): Promise<GetUserDto> {
+    const existentUser = await this.repository.findOne({
       where: {
-        email: createUserDto.email,
+        email: createUser.email,
       },
     });
 
-    if (user) {
+    if (existentUser) {
       throw new BadRequestException('Email already in use');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(createUser.password, 10);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...createdUser } = await this.repository.save({
-      ...createUserDto,
-      password: hashedPassword,
-    });
+    const user = await this.repository.create(createUser);
 
-    return createdUser;
+    user.password = hashedPassword;
+
+    const createdUser = await this.repository.save(user);
+    return getUserSchema.parse(createdUser);
   }
 
   async findAll(): Promise<GetUserDto[]> {
@@ -50,12 +45,16 @@ export class UsersService {
     });
   }
 
-  async findOne(userId: number): Promise<GetUserDto> {
+  async findOne(
+    userId: number,
+    options: FindOneOptions<UserEntity> = {},
+  ): Promise<GetUserDto> {
     const user = await this.repository.findOne({
+      ...options,
       where: {
+        ...(options?.where || {}),
         id: userId,
       },
-      select: ['id', 'name', 'email', 'createdAt', 'updatedAt'],
     });
 
     if (user) {
@@ -79,8 +78,8 @@ export class UsersService {
     throw new NotFoundException();
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<GetUserDto> {
-    await this.repository.update(id, updateUserDto);
+  async update(id: number, updateUser: UpdateUserDto): Promise<GetUserDto> {
+    await this.repository.update(id, updateUser);
 
     const updatedUser = await this.repository.findOne({
       where: {

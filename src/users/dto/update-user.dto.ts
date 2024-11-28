@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { createUserDtoSchema } from './create-user.dto';
+import { createUserSchema } from './create-user.dto';
 
-export const updateUserDtoSchema = createUserDtoSchema
+export const updateUserSchema = createUserSchema
   .omit({ email: true })
   .partial()
   .refine(
@@ -9,4 +9,4 @@ export const updateUserDtoSchema = createUserDtoSchema
     'At least one field is required',
   );
 
-export type UpdateUserDto = z.infer<typeof updateUserDtoSchema>;
+export type UpdateUserDto = z.infer<typeof updateUserSchema>;

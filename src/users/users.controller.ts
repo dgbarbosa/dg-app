@@ -9,21 +9,23 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateUserDto, createUserDtoSchema } from './dto/create-user.dto';
+import { CreateUserDto, createUserSchema } from './dto/create-user.dto';
 import { GetUserDto } from './dto/get-user.dto';
-import { UpdateUserDto, updateUserDtoSchema } from './dto/update-user.dto';
+import { UpdateUserDto, updateUserSchema } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { Public } from '@decorators';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Public()
   @Post()
   async create(
-    @Body(new ZodValidationPipe(createUserDtoSchema))
-    createUserDto: CreateUserDto,
+    @Body(new ZodValidationPipe(createUserSchema))
+    createUser: CreateUserDto,
   ): Promise<GetUserDto> {
-    return await this.usersService.create({ createUserDto });
+    return await this.usersService.create(createUser);
   }
 
   @Get()
@@ -39,10 +41,10 @@ export class UsersController {
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body(new ZodValidationPipe(updateUserDtoSchema))
-    updateUserDto: UpdateUserDto,
+    @Body(new ZodValidationPipe(updateUserSchema))
+    updateUser: UpdateUserDto,
   ): Promise<GetUserDto> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUser);
   }
 
   @Delete(':id')

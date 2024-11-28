@@ -1,9 +1,9 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { TodoList } from './todo-list.entity';
-import { User } from './user.entity';
+import { TodoListEntity } from './todo-list.entity';
+import { UserEntity } from './user.entity';
 
-@Entity()
-export class Todo {
+@Entity('todo')
+export class TodoEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -19,9 +19,13 @@ export class Todo {
   @Column({ default: false })
   isCompleted!: boolean;
 
-  @ManyToOne(() => TodoList, (todoList) => todoList.todos, { nullable: true })
-  todoList!: TodoList;
+  @ManyToOne(() => TodoListEntity, (todoListEntity) => todoListEntity.todos, {
+    nullable: true,
+  })
+  todoList?: TodoListEntity;
 
-  @ManyToOne(() => User, (user) => user.todos, { nullable: false })
-  user!: User;
+  @ManyToOne(() => UserEntity, (UserEntity) => UserEntity.todos, {
+    nullable: false,
+  })
+  user?: UserEntity;
 }

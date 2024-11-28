@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { userDtoSchema } from './user.dto';
+import { userSchema } from './user.dto';
 
-export const createUserDtoSchema = userDtoSchema
-  .omit({ id: true })
-  .merge(z.object({ password: z.string() }));
+export const createUserSchema = userSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
-export type CreateUserDto = z.infer<typeof createUserDtoSchema>;
+export type CreateUserDto = z.infer<typeof createUserSchema>;

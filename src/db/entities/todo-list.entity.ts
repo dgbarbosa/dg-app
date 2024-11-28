@@ -7,11 +7,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Todo } from './todo.entity';
-import { User } from './user.entity';
+import { TodoEntity } from './todo.entity';
+import { UserEntity } from './user.entity';
 
 @Entity('todoList')
-export class TodoList {
+export class TodoListEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -21,12 +21,14 @@ export class TodoList {
   @CreateDateColumn()
   createdAt!: Date;
 
-  @UpdateDateColumn()
-  updatedAt!: Date;
+  @UpdateDateColumn({ nullable: true })
+  updatedAt!: Date | null;
 
-  @ManyToOne(() => User, (user) => user.todoLists, { nullable: false })
-  user!: User;
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.todoLists, {
+    nullable: false,
+  })
+  user?: UserEntity;
 
-  @OneToMany(() => Todo, (todo) => todo.todoList)
-  todos!: Todo[];
+  @OneToMany(() => TodoEntity, (todoEntity) => todoEntity.todoList)
+  todos?: TodoEntity[];
 }

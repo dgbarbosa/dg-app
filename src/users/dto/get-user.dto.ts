@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { userDtoSchema } from './user.dto';
+import { userSchema } from './user.dto';
 
-export const getUserDtoSchema = userDtoSchema.omit({
+export const getUserSchema = userSchema.omit({
   password: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
-export type GetUserDto = z.infer<typeof getUserDtoSchema>;
+export type GetUserDto = z.infer<typeof getUserSchema>;

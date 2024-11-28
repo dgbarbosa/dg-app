@@ -1,14 +1,11 @@
 import { z } from 'zod';
-import { todoDtoSchema } from './todo.dto';
+import { todoSchema } from './todo.dto';
 
-export const updateTodoDtoSchema = todoDtoSchema
-  .omit({ id: true, dueDate: true })
+export const updateTodoSchema = todoSchema
   .partial()
-  .required({ todoList: true })
-  .merge(z.object({ dueDate: z.string().optional() }))
   .refine(
     (data) => Object.keys(data).length > 0,
     'At least one field is required',
   );
 
-export type UpdateTodoDto = z.infer<typeof updateTodoDtoSchema>;
+export type UpdateTodo = z.infer<typeof updateTodoSchema>;

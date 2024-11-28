@@ -6,11 +6,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { TodoList } from './todo-list.entity';
-import { Todo } from './todo.entity';
+import { TodoListEntity } from './todo-list.entity';
+import { TodoEntity } from './todo.entity';
+import { CompanyEntity } from './company.entity';
 
-@Entity()
-export class User {
+@Entity('user')
+export class UserEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -29,9 +30,16 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToMany(() => TodoList, (todoList) => todoList.user)
-  todoLists!: TodoList[];
+  @OneToMany(() => TodoListEntity, (todoListEntity) => todoListEntity.user, {
+    nullable: true,
+  })
+  todoLists?: TodoListEntity[];
 
-  @OneToMany(() => Todo, (todo) => todo.user)
-  todos!: Todo[];
+  @OneToMany(() => TodoEntity, (todoEntity) => todoEntity.user, {
+    nullable: true,
+  })
+  todos?: TodoEntity[];
+
+  @OneToMany(() => CompanyEntity, (company) => company.user)
+  companies?: CompanyEntity[];
 }

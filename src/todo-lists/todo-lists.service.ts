@@ -1,24 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { TodoList as TodoListRepository } from '@entities/todo-list.entity';
+import { TodoListEntity } from '@entities/todo-list.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { CreateTodoListDto } from './dto/create-todo-list.dto';
-import { TodoListDto } from './dto/todo-list.dto';
-import { GetTodoListDto } from './dto/get-todo-list.dto';
+import { TodoListDto, todoListSchema } from './dto/todo-list.dto';
 import { UpdateTodoListDto } from './dto/update-todo-list.dto';
 
 @Injectable()
 export class TodoListsService {
   constructor(
-    @InjectRepository(TodoListRepository)
-    private repository: Repository<TodoListRepository>,
+    @InjectRepository(TodoListEntity)
+    private repository: Repository<TodoListEntity>,
   ) {}
 
   async create(
     todoList: CreateTodoListDto,
     userId: number,
-  ): Promise<GetTodoListDto> {
+  ): Promise<TodoListDto> {
     const { user, ...createdTodoList } = await this.repository.save({
       ...todoList,
       user: { id: userId },
@@ -27,15 +26,23 @@ export class TodoListsService {
     return createdTodoList;
   }
 
-  async findAll(userId: number): Promise<GetTodoListDto[]> {
-    return await this.repository.find({
+  async findAll(userId: number, showTodos?: boolean): Promise<TodoListDto[]> {
+    const relations = [];
+
+    if (showTodos) {
+      relations.push('todos');
+    }
+
+    const lists = await this.repository.find({
       where: {
         user: {
           id: userId,
         },
       },
-      relations: ['todos'],
+      relations,
     });
+
+    return todoListSchema.array().parse(lists);
   }
 
   async delete(id: number, userId: number): Promise<void> {
@@ -59,33 +66,27 @@ export class TodoListsService {
     }
   }
 
-  async findById(id: number): Promise<TodoListDto> {
+  async findOne(
+    id: number,
+    userId: number,
+    options: FindOneOptions<TodoListDto> = {},
+  ): Promise<TodoListDto> {
     const todoList = await this.repository.findOne({
+      ...options,
       where: {
+        ...(options?.where || {}),
         id,
+        user: {
+          id: userId,
+        },
       },
     });
 
-    if (todoList) {
-      return todoList;
+    if (!todoList) {
+      throw new NotFoundException('TodoList not found');
     }
 
-    throw new NotFoundException();
-  }
-
-  async findOne(id: number): Promise<TodoListDto> {
-    const todoList = await this.repository.findOne({
-      where: {
-        id,
-      },
-      relations: ['user'],
-    });
-
-    if (todoList) {
-      return todoList;
-    }
-
-    throw new NotFoundException();
+    return todoListSchema.parse(todoList);
   }
 
   async patch(

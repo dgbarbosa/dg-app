@@ -11,10 +11,9 @@ import {
   Post,
 } from '@nestjs/common';
 import { CreateTodoDto, createTodoSchema } from './dto/create-todo.dto';
-import { GetTodoDto } from './dto/get-todo.dto';
-import { TodoDto } from './dto/todo.dto';
-import { UpdateTodoDto, updateTodoDtoSchema } from './dto/update-todo.dto';
+import { UpdateTodo, updateTodoSchema } from './dto/update-todo.dto';
 import { TodosService } from './todos.service';
+import { TodoDto } from './dto/todo.dto';
 
 @Controller('todos')
 export class TodosController {
@@ -24,7 +23,7 @@ export class TodosController {
   async create(
     @User() user: User,
     @Body(new ZodValidationPipe(createTodoSchema)) newTodo: CreateTodoDto,
-  ): Promise<GetTodoDto> {
+  ): Promise<TodoDto> {
     return await this.todoService.create(newTodo, user.id);
   }
 
@@ -37,7 +36,7 @@ export class TodosController {
   async patchTodo(
     @User() user: User,
     @Param('id') id: number,
-    @Body(new ZodValidationPipe(updateTodoDtoSchema)) todo: UpdateTodoDto,
+    @Body(new ZodValidationPipe(updateTodoSchema)) todo: UpdateTodo,
   ): Promise<TodoDto> {
     return this.todoService.patchTodo(id, todo, user.id);
   }
@@ -47,7 +46,6 @@ export class TodosController {
     @User() user: User,
     @Param('id', new ParseIntPipe()) id: number,
   ): Promise<void> {
-    console.log('id', id);
     return this.todoService.delete(id, user.id);
   }
 }

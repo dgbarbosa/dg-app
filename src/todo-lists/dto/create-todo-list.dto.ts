@@ -1,15 +1,13 @@
 import { z } from 'zod';
-import { todoListDtoSchema } from './todo-list.dto';
+import { todoListSchema } from './todo-list.dto';
 
-export const createTodoListDtoSchema = todoListDtoSchema
+export const createTodoListSchema = todoListSchema
   .omit({
     id: true,
     createdAt: true,
     updatedAt: true,
     dueDate: true,
-    todos: true,
-    user: true,
   })
   .merge(z.object({ dueDate: z.string() }));
 
-export type CreateTodoListDto = z.infer<typeof createTodoListDtoSchema>;
+export type CreateTodoListDto = z.infer<typeof createTodoListSchema>;

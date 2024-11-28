@@ -1,14 +1,11 @@
 import { z } from 'zod';
 
-export const todoDtoSchema = z.object({
+export const todoSchema = z.object({
   id: z.number().positive(),
   title: z.string(),
   description: z.string().optional(),
-  dueDate: z.date().optional(),
+  dueDate: z.date(),
   isCompleted: z.boolean(),
-  todoList: z.object({
-    id: z.number().int().positive(),
-  }),
 });
 
-export type TodoDto = z.infer<typeof todoDtoSchema>;
+export type TodoDto = z.infer<typeof todoSchema>;
